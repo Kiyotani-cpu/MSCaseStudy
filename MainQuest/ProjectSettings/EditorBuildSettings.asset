@@ -1,0 +1,12 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1045 &1
+EditorBuildSettings:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/FightScene.unity
+    guid: 7606620199ea6194d8b2a3c3719d1376
+  m_configObjects:
+    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 91bb3730b3649ae4abee8593c2e3425d, type: 2}
