@@ -1,14 +1,6 @@
 using UnityEngine;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
 using UnityEngine.UI;
 using Terresquall;
->>>>>>> Stashed changes
-=======
-using UnityEngine.UI;
-using Terresquall;
->>>>>>> Stashed changes
 
 public class PlayerAnimatorController : MonoBehaviour
 {
@@ -42,13 +34,6 @@ public class PlayerAnimatorController : MonoBehaviour
     public bool IsWeaponDrawn = false;
     [SerializeField] private GameObject swordInHand;
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-    // NEW: General lock for movement/inputs
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
     private bool isBusy = false;
 
     void Start()
