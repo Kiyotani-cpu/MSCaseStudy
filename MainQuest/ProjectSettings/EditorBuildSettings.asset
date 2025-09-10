@@ -5,17 +5,4 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes: []
-  m_configObjects:
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-=======
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
->>>>>>> Stashed changes
-=======
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
->>>>>>> Stashed changes
-=======
-    com.unity.input.settings.actions: {fileID: -944628639613478452, guid: ca9f5fa95ffab41fb9a615ab714db018, type: 3}
->>>>>>> Stashed changes
-    com.unity.xr.management.loader_settings: {fileID: 11400000, guid: 91bb3730b3649ae4abee8593c2e3425d, type: 2}
+  m_configObjects: {}
