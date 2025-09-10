@@ -1,0 +1,74 @@
+{
+    "name": "PlayerActionController",
+    "maps": [
+        {
+            "name": "Player",
+            "id": "26757c24-ee30-485d-944d-3903b0cfb759",
+            "actions": [
+                {
+                    "name": "Sheath/UnSheath",
+                    "type": "Button",
+                    "id": "daf060c0-e3ee-4220-a8b6-626c1b30229a",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Roll",
+                    "type": "Button",
+                    "id": "d1faef5e-2863-4763-97be-c8e9a3de8767",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "Attack",
+                    "type": "Button",
+                    "id": "266f3a2c-1117-4280-a026-585d90a59d11",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "be9a9928-9165-4952-80c5-1c03352d4fd8",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Sheath/UnSheath",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "0cc1cb98-3fe9-4b0e-9da0-98c57b5e41f2",
+                    "path": "<Keyboard>/space",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Roll",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "6eaa5b17-f086-4180-b74d-00e066631ae2",
+                    "path": "<Mouse>/leftButton",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Attack",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
+        }
+    ],
+    "controlSchemes": []
+}

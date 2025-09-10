@@ -1,4 +1,6 @@
 using UnityEngine;
+using Terresquall;
+using UnityEngine.InputSystem;
 
 public class PlayerAnimatorController : MonoBehaviour
 {
@@ -27,6 +29,7 @@ public class PlayerAnimatorController : MonoBehaviour
     public bool IsWeaponDrawn = false;
     [SerializeField] private GameObject swordInHand;
 
+ 
     // NEW: General lock for movement/inputs
     private bool isBusy = false;
 
@@ -77,8 +80,8 @@ public class PlayerAnimatorController : MonoBehaviour
     {
         if (isRolling || isBusy) return; // can't move if busy
 
-        float inputX = Input.GetAxis("Horizontal");
-        float inputZ = Input.GetAxis("Vertical");
+        float inputX = VirtualJoystick.GetAxis("Horizontal");
+        float inputZ = VirtualJoystick.GetAxis("Vertical");
         Vector3 moveDirection = new Vector3(inputX, 0f, inputZ).normalized;
 
         float speed = moveDirection.magnitude;
