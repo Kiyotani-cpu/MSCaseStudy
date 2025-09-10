@@ -1,7 +1,17 @@
 using UnityEngine;
+<<<<<<< Updated upstream
+=======
+using UnityEngine.UI;
+using Terresquall;
+>>>>>>> Stashed changes
 
 public class PlayerAnimatorController : MonoBehaviour
 {
+    [Header("UI Buttons")]
+    [SerializeField] private Button attackButton;
+    [SerializeField] private Button rollButton;
+    [SerializeField] private Button weaponButton;
+
     [Header("Components")]
     public Animator animator;
     public Rigidbody rb;
@@ -27,20 +37,33 @@ public class PlayerAnimatorController : MonoBehaviour
     public bool IsWeaponDrawn = false;
     [SerializeField] private GameObject swordInHand;
 
+<<<<<<< Updated upstream
     // NEW: General lock for movement/inputs
+=======
+>>>>>>> Stashed changes
     private bool isBusy = false;
+
+    void Start()
+    {
+        // Hook up UI buttons to their actions
+        if (attackButton != null)
+            attackButton.onClick.AddListener(() => TryAttack());
+
+        if (rollButton != null)
+            rollButton.onClick.AddListener(() => TryRoll());
+
+        if (weaponButton != null)
+            weaponButton.onClick.AddListener(() => ToggleWeapon());
+    }
 
     void Update()
     {
         HandleRollCooldown();
 
         if (isRolling)
-        {
             HandleRoll();
-        }
         else
         {
-            HandleInputs();
             HandleMovement();
         }
 
@@ -58,24 +81,26 @@ public class PlayerAnimatorController : MonoBehaviour
                 animator.ResetTrigger("Attack");
             }
         }
-        if (!isBusy && !isAttacking && IsWeaponDrawn && Input.GetMouseButtonDown(0))
-        {
+    }
+
+    void TryAttack()
+    {
+        if (!isBusy && !isAttacking && IsWeaponDrawn)
             StartAttack();
-        }
     }
 
     void StartAttack()
     {
         isAttacking = true;
         attackTimer = 0f;
-        isBusy = true; // lock movement
+        isBusy = true;
         animator.SetTrigger("Attack");
         rb.velocity = Vector3.zero;
     }
 
     void HandleMovement()
     {
-        if (isRolling || isBusy) return; // can't move if busy
+        if (isRolling || isBusy) return;
 
         float inputX = Input.GetAxis("Horizontal");
         float inputZ = Input.GetAxis("Vertical");
@@ -113,70 +138,64 @@ public class PlayerAnimatorController : MonoBehaviour
             animator.SetBool("IsRolling", false);
             IsEvading = false;
             rb.velocity = Vector3.zero;
-            isBusy = false; // unlock controls after roll ends
+            isBusy = false;
         }
+    }
+
+    void TryRoll()
+    {
+        if (!isBusy && rollCooldownTimer <= 0f)
+            StartRoll();
     }
 
     void StartRoll()
     {
-        if (isBusy) return; // can't roll if busy
         isRolling = true;
         rollTimer = 0f;
         rollCooldownTimer = rollCooldown;
         animator.SetBool("IsRolling", true);
         IsEvading = true;
-        isBusy = true; // lock controls during roll
+        isBusy = true;
         Vector3 rollDirection = transform.forward;
         rb.velocity = rollDirection * rollSpeed;
     }
 
-    void HandleInputs()
+    void ToggleWeapon()
     {
-        if (Input.GetKeyDown(KeyCode.Space) && rollCooldownTimer <= 0f)
-        {
-            StartRoll();
-            return;
-        }
-
-        if (Input.GetKeyDown(KeyCode.Q))
-        {
-            if (IsWeaponDrawn)
-                SheathWeapon();
-            else
-                UnsheathWeapon();
-        }
+        if (IsWeaponDrawn)
+            SheathWeapon();
+        else
+            UnsheathWeapon();
     }
 
     public void SheathWeapon()
     {
         if (isBusy) return;
-        isBusy = true; // lock controls
+        isBusy = true;
         animator.SetTrigger("Sheath");
         IsWeaponDrawn = false;
         animator.SetBool("IsWeaponDrawn", false);
         UnequipSword();
+
+        if (attackButton != null)
+        attackButton.gameObject.SetActive(false); // Hide attack button
     }
 
     public void UnsheathWeapon()
     {
         if (isBusy) return;
-        isBusy = true; // lock controls
+        isBusy = true;
         animator.SetTrigger("Unsheath");
         IsWeaponDrawn = true;
         animator.SetBool("IsWeaponDrawn", true);
         EquipSword();
+        
+        if (attackButton != null)
+            attackButton.gameObject.SetActive(true); // Unhide attack button
     }
 
-    public void EquipSword()
-    {
-        swordInHand.SetActive(true);
-    }
-
-    public void UnequipSword()
-    {
-        swordInHand.SetActive(false);
-    }
-
+    public void EquipSword() => swordInHand.SetActive(true);
+    public void UnequipSword() => swordInHand.SetActive(false);
 
     public void EndAction()
     {
