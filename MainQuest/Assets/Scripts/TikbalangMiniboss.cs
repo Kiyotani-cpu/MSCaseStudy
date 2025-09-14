@@ -12,7 +12,7 @@ public class TikbalangMiniboss : MonoBehaviour
     public float walkSpeed = 2f;
     public float runSpeed = 5f;
     public float chaseRange = 8f;   // When to run
-    public float attackRange = 2f;  // Kick distance
+    public float attackRange = 3f;  // Kick distance
 
     private bool isAttacking = false;
 
@@ -69,15 +69,32 @@ public class TikbalangMiniboss : MonoBehaviour
         isAttacking = true;
         animator.SetTrigger("Kick");
 
-        // wait a moment to enable collider (timed with animation)
-        yield return new WaitForSeconds(0.3f);
-        if (kickCollider != null) kickCollider.enabled = true;
-
-        yield return new WaitForSeconds(0.4f);
-        if (kickCollider != null) kickCollider.enabled = false;
+        // Wait until animation finishes (set duration same as anim length)
+        yield return new WaitForSeconds(1.2f);
 
         // small cooldown
-        yield return new WaitForSeconds(1f);
+        yield return new WaitForSeconds(0.5f);
         isAttacking = false;
+    }
+
+    // Called from Animation Events in Kick clip
+    public void EnableKickCollider()
+    {
+        if (kickCollider != null)
+            kickCollider.enabled = true;
+    }
+
+    public void DisableKickCollider()
+    {
+        if (kickCollider != null)
+            kickCollider.enabled = false;
+    }
+
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player") && kickCollider.enabled)
+        {
+            Debug.Log("Player hit by Tikbalang kick!");
+        }
     }
 }

@@ -61,6 +61,15 @@ public class PlayerAnimatorController : MonoBehaviour
         }
 
         HandleAttackCooldown();
+
+        if (IsWeaponDrawn && Input.GetKeyDown(KeyCode.Mouse0)) // Attack
+            TryAttack();
+
+        if (Input.GetKeyDown(KeyCode.Space)) // Roll / Dodge
+            TryRoll();
+
+        if (Input.GetKeyDown(KeyCode.Q)) // Toggle weapon (Unsheath/Sheath)
+            ToggleWeapon();
     }
 
     void HandleAttackCooldown()
@@ -95,10 +104,22 @@ public class PlayerAnimatorController : MonoBehaviour
     {
         if (isRolling || isBusy) return;
 
+        // --- Get inputs ---
+        // Virtual joystick input
         float inputX = VirtualJoystick.GetAxis("Horizontal");
         float inputZ = VirtualJoystick.GetAxis("Vertical");
-        Vector3 moveDirection = new Vector3(inputX, 0f, inputZ).normalized;
 
+        // Keyboard input (WASD / Arrow keys)
+        float kbX = Input.GetAxis("Horizontal");
+        float kbZ = Input.GetAxis("Vertical");
+
+        // Combine both (if either gives input, it will work)
+        float finalX = Mathf.Abs(inputX) > 0.01f ? inputX : kbX;
+        float finalZ = Mathf.Abs(inputZ) > 0.01f ? inputZ : kbZ;
+
+        Vector3 moveDirection = new Vector3(finalX, 0f, finalZ).normalized;
+
+        // --- Movement ---
         float speed = moveDirection.magnitude;
         animator.SetFloat("Speed", speed);
 
@@ -115,6 +136,7 @@ public class PlayerAnimatorController : MonoBehaviour
             rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
         }
     }
+
 
     void HandleRollCooldown()
     {
