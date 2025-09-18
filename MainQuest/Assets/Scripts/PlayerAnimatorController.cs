@@ -19,7 +19,8 @@ public class PlayerAnimatorController : MonoBehaviour
     [Header("Roll Settings")]
     public float rollSpeed = 8f;
     private bool isRolling = false;
-    private float rollDuration = 0.8f;
+    public float rollDistance = 5f;
+    public float rollDuration = 0.8f;
     private float rollTimer = 0f;
     public float rollCooldown = 1.5f;
     private float rollCooldownTimer = 0f;
@@ -31,45 +32,38 @@ public class PlayerAnimatorController : MonoBehaviour
     private float attackTimer = 0f;
 
     [Header("Weapon Settings")]
+    [SerializeField] private Collider swordCollider;
     public bool IsWeaponDrawn = false;
     [SerializeField] private GameObject swordInHand;
 
     private bool isBusy = false;
+    private Vector3 rollStartPos;
+    private Vector3 rollTargetPos;
 
     void Start()
     {
-        // Hook up UI buttons to their actions
-        if (attackButton != null)
-            attackButton.onClick.AddListener(() => TryAttack());
+        // Hook up UI buttons
+        if (attackButton != null) attackButton.onClick.AddListener(() => TryAttack());
+        if (rollButton != null) rollButton.onClick.AddListener(() => TryRoll());
+        if (weaponButton != null) weaponButton.onClick.AddListener(() => ToggleWeapon());
 
-        if (rollButton != null)
-            rollButton.onClick.AddListener(() => TryRoll());
-
-        if (weaponButton != null)
-            weaponButton.onClick.AddListener(() => ToggleWeapon());
+        DisableSwordCollider();
+        UnequipSword();
     }
 
     void Update()
     {
         HandleRollCooldown();
 
-        if (isRolling)
-            HandleRoll();
-        else
-        {
-            HandleMovement();
-        }
+        if (isRolling) HandleRoll();
+        else HandleMovement();
 
         HandleAttackCooldown();
 
-        if (IsWeaponDrawn && Input.GetKeyDown(KeyCode.Mouse0)) // Attack
-            TryAttack();
-
-        if (Input.GetKeyDown(KeyCode.Space)) // Roll / Dodge
-            TryRoll();
-
-        if (Input.GetKeyDown(KeyCode.Q)) // Toggle weapon (Unsheath/Sheath)
-            ToggleWeapon();
+        // --- Debug inputs ---
+        if (IsWeaponDrawn && Input.GetKeyDown(KeyCode.Mouse0)) TryAttack();
+        if (Input.GetKeyDown(KeyCode.Space)) TryRoll();
+        if (Input.GetKeyDown(KeyCode.Q)) ToggleWeapon();
     }
 
     void HandleAttackCooldown()
@@ -104,22 +98,16 @@ public class PlayerAnimatorController : MonoBehaviour
     {
         if (isRolling || isBusy) return;
 
-        // --- Get inputs ---
-        // Virtual joystick input
         float inputX = VirtualJoystick.GetAxis("Horizontal");
         float inputZ = VirtualJoystick.GetAxis("Vertical");
 
-        // Keyboard input (WASD / Arrow keys)
         float kbX = Input.GetAxis("Horizontal");
         float kbZ = Input.GetAxis("Vertical");
 
-        // Combine both (if either gives input, it will work)
         float finalX = Mathf.Abs(inputX) > 0.01f ? inputX : kbX;
         float finalZ = Mathf.Abs(inputZ) > 0.01f ? inputZ : kbZ;
 
         Vector3 moveDirection = new Vector3(finalX, 0f, finalZ).normalized;
-
-        // --- Movement ---
         float speed = moveDirection.magnitude;
         animator.SetFloat("Speed", speed);
 
@@ -137,16 +125,38 @@ public class PlayerAnimatorController : MonoBehaviour
         }
     }
 
-
     void HandleRollCooldown()
     {
-        if (rollCooldownTimer > 0f)
-            rollCooldownTimer -= Time.deltaTime;
+        if (rollCooldownTimer > 0f) rollCooldownTimer -= Time.deltaTime;
+    }
+
+    void TryRoll()
+    {
+        if (!isBusy && rollCooldownTimer <= 0f) StartRoll();
+    }
+
+    void StartRoll()
+    {
+        isRolling = true;
+        rollTimer = 0f;
+        rollCooldownTimer = rollCooldown;
+        animator.SetBool("IsRolling", true);
+
+        IsEvading = true;
+        isBusy = true;
+
+        rollStartPos = transform.position;
+        rollTargetPos = transform.position + transform.forward * rollDistance;
     }
 
     void HandleRoll()
     {
         rollTimer += Time.deltaTime;
+        float t = rollTimer / rollDuration;
+
+        // Smooth roll movement
+        transform.position = Vector3.Lerp(rollStartPos, rollTargetPos, t);
+
         if (rollTimer >= rollDuration)
         {
             isRolling = false;
@@ -157,30 +167,10 @@ public class PlayerAnimatorController : MonoBehaviour
         }
     }
 
-    void TryRoll()
-    {
-        if (!isBusy && rollCooldownTimer <= 0f)
-            StartRoll();
-    }
-
-    void StartRoll()
-    {
-        isRolling = true;
-        rollTimer = 0f;
-        rollCooldownTimer = rollCooldown;
-        animator.SetBool("IsRolling", true);
-        IsEvading = true;
-        isBusy = true;
-        Vector3 rollDirection = transform.forward;
-        rb.velocity = rollDirection * rollSpeed;
-    }
-
     void ToggleWeapon()
     {
-        if (IsWeaponDrawn)
-            SheathWeapon();
-        else
-            UnsheathWeapon();
+        if (IsWeaponDrawn) SheathWeapon();
+        else UnsheathWeapon();
     }
 
     public void SheathWeapon()
@@ -190,7 +180,7 @@ public class PlayerAnimatorController : MonoBehaviour
         animator.SetTrigger("Sheath");
         IsWeaponDrawn = false;
         animator.SetBool("IsWeaponDrawn", false);
-        UnequipSword();
+        // UnequipSword(); <-- REMOVE this, animation event will handle it
     }
 
     public void UnsheathWeapon()
@@ -200,15 +190,26 @@ public class PlayerAnimatorController : MonoBehaviour
         animator.SetTrigger("Unsheath");
         IsWeaponDrawn = true;
         animator.SetBool("IsWeaponDrawn", true);
-        EquipSword();
+        // EquipSword(); <-- REMOVE this, animation event will handle it
     }
 
-    public void EquipSword() => swordInHand.SetActive(true);
-    public void UnequipSword() => swordInHand.SetActive(false);
 
-    public void EndAction()
+    public void EquipSword()
     {
-        isBusy = false;
-        Debug.Log("Action ended, controls unlocked.");
+        Debug.Log("EquipSword() event triggered!");
+        swordInHand.SetActive(true);
     }
+
+    public void UnequipSword()
+    {
+        Debug.Log("UnequipSword() event triggered!");
+        swordInHand.SetActive(false);
+    }
+
+
+
+    // Called by animation events
+    public void EnableSwordCollider() { if (swordCollider != null) swordCollider.enabled = true; }
+    public void DisableSwordCollider() { if (swordCollider != null) swordCollider.enabled = false; }
+    public void EndAction() { isBusy = false; Debug.Log("Action ended, controls unlocked."); }
 }
