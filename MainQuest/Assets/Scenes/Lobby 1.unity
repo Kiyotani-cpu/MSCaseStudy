@@ -9523,6 +9523,12 @@ MonoBehaviour:
   m_Script: {fileID: 2020821747, guid: 8a9a760f95896c34689febc965510927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  AnchorStage: {fileID: 0}
+  DuplicateStage: 1
+  OnContentPlaced:
+    m_PersistentCalls:
+      m_Calls: []
+  mDisplayAdvanced: 0
 --- !u!114 &744525570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9535,6 +9541,16 @@ MonoBehaviour:
   m_Script: {fileID: 422107450, guid: 8a9a760f95896c34689febc965510927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PlaneIndicator: {fileID: 0}
+  Height: 1.4
+  OnInteractiveHitTest:
+    m_PersistentCalls:
+      m_Calls: []
+  OnAutomaticHitTest:
+    m_PersistentCalls:
+      m_Calls: []
+  mDisplayAdvanced: 0
+  mHitTestMode: 0
 --- !u!114 &744525571
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -9547,6 +9563,10 @@ MonoBehaviour:
   m_Script: {fileID: 1027344429, guid: 8a9a760f95896c34689febc965510927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mDisplayAdvanced: 0
+  OnInputReceivedEvent:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!4 &744525572
 Transform:
   m_ObjectHideFlags: 0
@@ -9873,7 +9893,7 @@ MonoBehaviour:
   m_OverrideTileSize: 0
   m_TileSize: 256
   m_OverrideVoxelSize: 0
-  m_VoxelSize: 0.26666668
+  m_VoxelSize: 0.16666667
   m_MinRegionArea: 2
   m_NavMeshData: {fileID: 23800000, guid: f75a87d6e5779ba4187b07a19f53d540, type: 2}
   m_BuildHeightMesh: 0
@@ -18449,6 +18469,8 @@ MonoBehaviour:
   m_Script: {fileID: -1826476478, guid: 8a9a760f95896c34689febc965510927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  mWorldCenterMode: 2
+  mWorldCenter: {fileID: 0}
 --- !u!81 &1505195146
 AudioListener:
   m_ObjectHideFlags: 0
@@ -26368,9 +26390,9 @@ GameObject:
   - component: {fileID: 2033730852}
   - component: {fileID: 2033730851}
   - component: {fileID: 2033730850}
-  - component: {fileID: 2033730853}
   - component: {fileID: 2033730854}
   - component: {fileID: 2033730855}
+  - component: {fileID: 2033730856}
   m_Layer: 7
   m_Name: Ground Plane Stage
   m_TagString: Untagged
@@ -26390,6 +26412,38 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 886328de6a5c14cbb85854fdf1a5085b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  StatusFilter: 2
+  UsePoseSmoothing: 0
+  AnimationCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 0
+      inSlope: 0
+      outSlope: 3.3333333
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    - serializedVersion: 3
+      time: 0.3
+      value: 1
+      inSlope: 3.3333333
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0
+      outWeight: 0
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  OnTargetFound:
+    m_PersistentCalls:
+      m_Calls: []
+  OnTargetLost:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!114 &2033730851
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -26402,6 +26456,15 @@ MonoBehaviour:
   m_Script: {fileID: 697333272, guid: 8a9a760f95896c34689febc965510927, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  PreviewVisible: 1
+  RuntimeOcclusion: 0
+  RuntimeCollider: 0
+  mTrackableName: 
+  mInitializedInEditor: 0
+  mSelectedStageType: 0
+  mPlaneReference: {fileID: 0}
+  mMidAirReference: {fileID: 0}
+  mPreview: {fileID: 2033730856}
 --- !u!4 &2033730852
 Transform:
   m_ObjectHideFlags: 0
@@ -26432,18 +26495,6 @@ Transform:
   - {fileID: 1149138211}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2033730853
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2033730849}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 1308684972, guid: 8a9a760f95896c34689febc965510927, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!64 &2033730854
 MeshCollider:
   m_ObjectHideFlags: 0
@@ -26488,6 +26539,23 @@ MeshCollider:
   m_Convex: 0
   m_CookingOptions: 30
   m_Mesh: {fileID: 0}
+--- !u!114 &2033730856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2033730849}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 1308684972, guid: 8a9a760f95896c34689febc965510927, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  mObserverBehaviour: {fileID: 2033730851}
+  mHiddenRoot: {fileID: 0}
+  mTargetName: 
+  mDatasetName: 
+  mCastedBehaviour: {fileID: 2033730851}
 --- !u!1 &2035009238 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5333459473274916307, guid: 805fe8520ca8daf4f9855ded306a0ca1, type: 3}
