@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.Playables;
+using UnityEngine.SceneManagement;
 using System.Collections;
 
 public class BossCutsceneWithTimeline : MonoBehaviour
@@ -15,9 +16,9 @@ public class BossCutsceneWithTimeline : MonoBehaviour
 
     [Header("Settings")]
     public float walkTimeout = 10f; // fallback if navmesh stalls
+    public string bossNameInMainScene = "Tikbalang MiniBoss"; // name of boss object in main scene
 
-    // call this to start the full cutscene
-    public void Start()
+    void Start()
     {
         StartCoroutine(CutsceneRoutine());
     }
@@ -29,7 +30,7 @@ public class BossCutsceneWithTimeline : MonoBehaviour
         bossAgent.isStopped = false;
         bossAgent.SetDestination(stopPoint.position);
 
-        // Start the camera timeline (starts playing Cinemachine shots)
+        // Start the camera timeline
         if (director != null) director.Play();
 
         // Wait until boss reaches stop point or timeout
@@ -44,10 +45,29 @@ public class BossCutsceneWithTimeline : MonoBehaviour
         bossAgent.isStopped = true;
         bossAnimator.SetTrigger("Roar");
 
-        // (optional) wait for timeline to finish before doing anything else
+        // Wait for timeline to finish
         if (director != null)
             yield return new WaitWhile(() => director.state == PlayState.Playing);
-        else
-            yield return null;
+
+        // Small buffer
+        yield return new WaitForSeconds(0.5f);
+
+        // Return to original scene
+        string returnScene = PlayerPrefs.GetString("ReturnScene", "MainScene");
+        SceneManager.sceneLoaded += OnMainSceneLoaded;
+        SceneManager.LoadScene(returnScene);
+    }
+
+    void OnMainSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Enable boss when we’re back
+        GameObject boss = GameObject.Find(bossNameInMainScene);
+        if (boss != null)
+        {
+            boss.SetActive(true);
+            Debug.Log("🔥 Boss enabled after cutscene!");
+        }
+
+        SceneManager.sceneLoaded -= OnMainSceneLoaded;
     }
 }

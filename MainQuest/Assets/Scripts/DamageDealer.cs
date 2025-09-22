@@ -4,7 +4,6 @@ public class DamageDealer : MonoBehaviour
 {
     [Header("Damage Settings")]
     public int damageAmount = 20;
-    public bool destroyOnHit = false; // Useful for projectiles
 
     [Header("Ownership")]
     public Faction ownerFaction; // Assign in inspector (Player / Enemy)
@@ -13,17 +12,9 @@ public class DamageDealer : MonoBehaviour
     {
         Health target = other.GetComponent<Health>();
 
-        if (target != null)
+        if (target != null && target.faction != ownerFaction)
         {
-            if (target.faction != ownerFaction)
-            {
-                target.TakeDamage(damageAmount);
-
-                if (destroyOnHit)
-                {
-                    Destroy(gameObject);
-                }
-            }
+            target.TakeDamage(damageAmount);
         }
     }
 }

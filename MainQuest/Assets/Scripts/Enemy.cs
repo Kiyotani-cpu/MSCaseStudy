@@ -16,9 +16,9 @@ public class Enemy : MonoBehaviour
     }
 
     // This can be called by player attacks, projectiles, etc.
-    public void TakeHit(int damage, bool isCrit = false)
-    {
-        if (health != null)
-            health.TakeDamage(damage, isCrit);
-    }
+    // public void TakeHit(int damage, bool isCrit = false)
+    // {
+    //     if (health != null)
+    //         health.TakeDamage(damage, isCrit);
+    // }
 }

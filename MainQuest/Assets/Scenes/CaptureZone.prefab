@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 1617657306266085541}
   - component: {fileID: 4096511345378874360}
   m_Layer: 0
-  m_Name: Terrain
+  m_Name: CaptureZone
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

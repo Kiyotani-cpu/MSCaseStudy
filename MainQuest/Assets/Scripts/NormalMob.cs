@@ -5,8 +5,7 @@ public class NormalMob : MonoBehaviour
     [Header("Components")]
     public Animator animator;
     public Rigidbody rb;
-    public Transform player;
-    public Collider attackCollider; // Assign in inspector (hand, claw, weapon)
+    public Collider attackCollider; // Assign in inspector
 
     [Header("Movement Settings")]
     public float walkSpeed = 1.5f;
@@ -20,17 +19,16 @@ public class NormalMob : MonoBehaviour
     public float idleTimeMax = 5f;
 
     [Header("Vision Settings")]
-    public float visionDistance = 8f;   // ✅ only distance now
-    public LayerMask visionMask;        // optional raycast check (can remove if not needed)
+    public float visionDistance = 8f;
 
     [Header("Home Settings")]
     public Transform homePoint;
     public float returnSpeed = 2f;
 
     private bool isAttacking = false;
-    private bool hasSpottedPlayer = false;
     private Vector3 wanderTarget;
     private Vector3 homePosition;
+    private Transform currentTarget;
 
     private enum WanderState { Idle, Walking }
     private WanderState currentState = WanderState.Idle;
@@ -40,33 +38,35 @@ public class NormalMob : MonoBehaviour
     {
         if (animator == null) animator = GetComponent<Animator>();
         if (rb == null) rb = GetComponent<Rigidbody>();
-        if (player == null) player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
         if (attackCollider != null)
             attackCollider.enabled = false;
 
         homePosition = (homePoint != null) ? homePoint.position : transform.position;
-
         EnterIdle();
     }
 
     void Update()
     {
-        if (player == null || isAttacking) return;
+        if (isAttacking) return;
 
-        // ✅ Just check distance instead of FOV
-        hasSpottedPlayer = CanSeePlayer();
+        FindTarget(); // 🔹 always search for closest Player or Summon
+        if (currentTarget == null)
+        {
+            HandleWandering();
+            return;
+        }
 
-        float distance = Vector3.Distance(transform.position, player.position);
+        float distance = Vector3.Distance(transform.position, currentTarget.position);
 
-        if (hasSpottedPlayer && distance <= attackRange)
+        if (distance <= attackRange)
         {
             StartCoroutine(DoAttack());
             animator.SetFloat("Speed", 0f);
         }
-        else if (hasSpottedPlayer && distance <= chaseRange)
+        else if (distance <= chaseRange)
         {
-            MoveTowards(player.position, chaseSpeed);
+            MoveTowards(currentTarget.position, chaseSpeed);
             animator.SetFloat("Speed", 1f);
         }
         else
@@ -82,6 +82,30 @@ public class NormalMob : MonoBehaviour
                 HandleWandering();
             }
         }
+    }
+
+    void FindTarget()
+    {
+        Collider[] hits = Physics.OverlapSphere(transform.position, visionDistance);
+
+        float closestDist = Mathf.Infinity;
+        Transform closest = null;
+
+        foreach (Collider hit in hits)
+        {
+            Health h = hit.GetComponent<Health>();
+            if (h != null && (h.faction == Faction.Player || h.faction == Faction.Summon))
+            {
+                float dist = Vector3.Distance(transform.position, h.transform.position);
+                if (dist < closestDist)
+                {
+                    closestDist = dist;
+                    closest = h.transform;
+                }
+            }
+        }
+
+        currentTarget = closest;
     }
 
     void HandleWandering()
@@ -138,13 +162,6 @@ public class NormalMob : MonoBehaviour
             transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 5f * Time.deltaTime);
     }
 
-    // ✅ Simplified "vision" → distance only
-    bool CanSeePlayer()
-    {
-        float distance = Vector3.Distance(transform.position, player.position);
-        return distance <= visionDistance;
-    }
-
     System.Collections.IEnumerator DoAttack()
     {
         isAttacking = true;
@@ -167,13 +184,5 @@ public class NormalMob : MonoBehaviour
         if (attackCollider != null)
             attackCollider.enabled = false;
     }
-
-    void OnTriggerEnter(Collider other)
-    {
-        if (other.CompareTag("Player") && attackCollider.enabled)
-        {
-            Debug.Log("Player hit by Normal Mob attack!");
-            // TODO: Apply damage
-        }
-    }
+    
 }

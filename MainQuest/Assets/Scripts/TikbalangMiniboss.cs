@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections;
 
 public class TikbalangMiniboss : MonoBehaviour
 {
@@ -6,15 +7,24 @@ public class TikbalangMiniboss : MonoBehaviour
     public Animator animator;
     public Rigidbody rb;
     public Transform player;
-    public Collider kickCollider; // Assign a trigger collider on the leg in inspector
+    public Collider kickCollider; // Trigger collider on leg
 
     [Header("Movement Settings")]
     public float walkSpeed = 2f;
     public float runSpeed = 5f;
-    public float chaseRange = 8f;   // When to run
+    public float chaseRange = 8f;   // Start running
     public float attackRange = 3f;  // Kick distance
+    public float wanderRadius = 5f; // Max distance from spawn for wandering
+    public float wanderSpeed = 1.5f;
+
+    [Header("Attack Settings")]
+    public float kickDuration = 1.2f;
+    public float attackCooldown = 0.5f;
 
     private bool isAttacking = false;
+    private Vector3 spawnPosition;
+    private Vector3 wanderTarget;
+    private bool isWandering = false;
 
     void Start()
     {
@@ -23,45 +33,59 @@ public class TikbalangMiniboss : MonoBehaviour
         if (player == null) player = GameObject.FindGameObjectWithTag("Player")?.transform;
 
         if (kickCollider != null)
-            kickCollider.enabled = false; // make sure off by default
+            kickCollider.enabled = false;
+
+        spawnPosition = transform.position;
+        wanderTarget = transform.position;
     }
 
     void Update()
     {
-        if (player == null || isAttacking) return;
+        // If player is null, dead, or destroyed
+        bool playerDeadOrMissing = (player == null || player.GetComponent<Health>()?.IsDead == true);
+
+        if (playerDeadOrMissing)
+        {
+            Wander();
+            return;
+        }
+
+        if (isAttacking) return;
 
         float distance = Vector3.Distance(transform.position, player.position);
 
         // Rotate toward player
-        Vector3 direction = (player.position - transform.position).normalized;
-        direction.y = 0;
-        if (direction.magnitude > 0.1f)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 5f * Time.deltaTime);
+        RotateTowards(player.position);
 
         if (distance <= attackRange)
         {
-            // Start attack
             StartCoroutine(DoKick());
-            animator.SetFloat("Speed", 0f); // idle during attack
+            animator.SetFloat("Speed", 0f);
         }
         else if (distance <= chaseRange)
         {
-            // Run
-            MoveTowardsPlayer(runSpeed);
-            animator.SetFloat("Speed", 1f); // full run
+            MoveTowards(player.position, runSpeed);
+            animator.SetFloat("Speed", 1f);
         }
         else
         {
-            // Walk
-            MoveTowardsPlayer(walkSpeed);
-            animator.SetFloat("Speed", 0.5f); // mid-value = walk
+            MoveTowards(player.position, walkSpeed);
+            animator.SetFloat("Speed", 0.5f);
         }
     }
 
-    void MoveTowardsPlayer(float speed)
+    void RotateTowards(Vector3 targetPos)
     {
-        Vector3 targetPos = new Vector3(player.position.x, transform.position.y, player.position.z);
-        transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
+        Vector3 direction = (targetPos - transform.position);
+        direction.y = 0;
+        if (direction.sqrMagnitude > 0.01f)
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 5f * Time.deltaTime);
+    }
+
+    void MoveTowards(Vector3 targetPos, float speed)
+    {
+        Vector3 movePos = new Vector3(targetPos.x, transform.position.y, targetPos.z);
+        transform.position = Vector3.MoveTowards(transform.position, movePos, speed * Time.deltaTime);
     }
 
     System.Collections.IEnumerator DoKick()
@@ -69,15 +93,13 @@ public class TikbalangMiniboss : MonoBehaviour
         isAttacking = true;
         animator.SetTrigger("Kick");
 
-        // Wait until animation finishes (set duration same as anim length)
-        yield return new WaitForSeconds(1.2f);
+        yield return new WaitForSeconds(kickDuration);
+        yield return new WaitForSeconds(attackCooldown);
 
-        // small cooldown
-        yield return new WaitForSeconds(0.5f);
         isAttacking = false;
     }
 
-    // Called from Animation Events in Kick clip
+    // Called from animation events
     public void EnableKickCollider()
     {
         if (kickCollider != null)
@@ -92,9 +114,28 @@ public class TikbalangMiniboss : MonoBehaviour
 
     void OnTriggerEnter(Collider other)
     {
-        if (other.CompareTag("Player") && kickCollider.enabled)
+        if (kickCollider != null && kickCollider.enabled && other.CompareTag("Player"))
         {
             Debug.Log("Player hit by Tikbalang kick!");
         }
+    }
+
+    // Wandering behavior when player is dead
+    void Wander()
+    {
+        animator.SetFloat("Speed", 0.5f);
+
+        if (!isWandering || Vector3.Distance(transform.position, wanderTarget) < 0.2f)
+        {
+            wanderTarget = spawnPosition + new Vector3(
+                Random.Range(-wanderRadius, wanderRadius),
+                0f,
+                Random.Range(-wanderRadius, wanderRadius)
+            );
+            isWandering = true;
+        }
+
+        MoveTowards(wanderTarget, wanderSpeed);
+        RotateTowards(wanderTarget);
     }
 }

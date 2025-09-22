@@ -107,24 +107,34 @@ public class PlayerAnimatorController : MonoBehaviour
         float finalX = Mathf.Abs(inputX) > 0.01f ? inputX : kbX;
         float finalZ = Mathf.Abs(inputZ) > 0.01f ? inputZ : kbZ;
 
-        Vector3 moveDirection = new Vector3(finalX, 0f, finalZ).normalized;
+        // Camera forward (ignore Y so player stays on ground)
+        Vector3 camForward = Vector3.Scale(Camera.main.transform.forward, new Vector3(1, 0, 1)).normalized;
+        Vector3 camRight = Camera.main.transform.right;
+
+        // Convert input to camera space
+        Vector3 moveDirection = (camForward * finalZ + camRight * finalX).normalized;
+
         float speed = moveDirection.magnitude;
         animator.SetFloat("Speed", speed);
 
         if (speed > 0f)
         {
-            Vector3 moveVelocity = moveDirection * moveSpeed;
-            rb.velocity = new Vector3(moveVelocity.x, rb.velocity.y, moveVelocity.z);
+            // Target velocity in camera-relative direction
+            Vector3 targetVelocity = moveDirection * moveSpeed;
 
+            // Smoothly move towards target velocity
+            rb.velocity = Vector3.Lerp(rb.velocity, new Vector3(targetVelocity.x, rb.velocity.y, targetVelocity.z), Time.deltaTime * 10f);
+
+            // Smooth rotation
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
         }
         else
         {
-            rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
+            // Decelerate smoothly instead of snapping to 0
+            rb.velocity = Vector3.Lerp(rb.velocity, new Vector3(0f, rb.velocity.y, 0f), Time.deltaTime * 10f);
         }
     }
-
     void HandleRollCooldown()
     {
         if (rollCooldownTimer > 0f) rollCooldownTimer -= Time.deltaTime;
