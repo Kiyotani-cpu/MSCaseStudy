@@ -4,5 +4,14 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Scenes/Testing/DemoLevelScene.unity
+    guid: 74e36c28326991a4ba8a2e0c6215ee67
+  - enabled: 1
+    path: Assets/Scenes/Testing/MiniBossCutScene.unity
+    guid: 9b13e2d4be1728e439e93652edf3984c
+  - enabled: 1
+    path: Assets/Scenes/Testing/MiniBossFightScene.unity
+    guid: 7f957c19aed8ddf4cb797333a356ecde
   m_configObjects: {}
