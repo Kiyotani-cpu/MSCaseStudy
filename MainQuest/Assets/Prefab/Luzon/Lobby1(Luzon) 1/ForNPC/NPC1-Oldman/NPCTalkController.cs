@@ -1,106 +1,188 @@
 using UnityEngine;
+using TMPro;
+using UnityEngine.UI;
+using System.Collections;
 using Cinemachine;
 
 public class NPCTalkController : MonoBehaviour
 {
-    private Animator animator;
-    private bool isTalking = false;
-
-    // Fix: Declare the cameraTransform variable here
-    public Transform cameraTransform;
-
-    [Header("Player Settings")]
+    [Header("References")]
     public Transform player;
-    public float maxTalkDistance = 3f;
+    public Animator animator;
+    public CinemachineVirtualCamera npcCam;
+    public CinemachineVirtualCamera playerCam;
 
-    [Header("Cinemachine Cameras")]
-    public CinemachineVirtualCamera playerCam; // AR default
-    public CinemachineVirtualCamera npcCam;    // NPC close-up
+    [Header("Dialogue UI")]
+    public GameObject dialoguePanel;      // Panel for general dialogue
+    public TextMeshProUGUI dialogueText;
+    public GameObject nameChoicePanel;    // Panel to choose name (Alex)
+    public GameObject choicePanel;        // Panel for Yes/No choice
+    public Button nameButtonAlex;
+    public Button yesButton;
+    public Button noButton;
+
+    [Header("Dialogue Data")]
+    [TextArea] public string[] npcDialogues;   // Regular dialogue lines
+    public AudioClip[] npcVoices;              // Optional voice lines
+    public AudioSource audioSource;
+
+    [Header("Settings")]
+    public float maxTalkDistance = 3f;
+    public float wordDelay = 0.25f; // seconds per word
+
+    [Header("BGM")]
+    public BGMController bgmController;
+
+    private bool isTalking = false;
+    private int currentLine = 0;
+    private Coroutine typeCoroutine;
+    private bool nameChosen = false;
 
     void Start()
     {
-        // Add a null check for the player, in case it wasn't assigned in the Inspector.
-        if (player == null)
-        {
-            Debug.LogError("Player Transform is not assigned!");
-        }
+        // Hide panels initially
+        dialoguePanel.SetActive(false);
+        nameChoicePanel.SetActive(false);
+        choicePanel.SetActive(false);
 
-        // Initialize the animator component.
-        animator = GetComponent<Animator>();
-        if (animator == null)
-        {
-            Debug.LogWarning("Animator component not found on the NPC.");
-        }
-
-        // The rest of your existing Start() logic
-        if (cameraTransform == null)
-        {
-            Camera mainCam = Camera.main;
-            if (mainCam != null)
-            {
-                cameraTransform = mainCam.transform;
-                Debug.Log("Auto-assigned Main Camera to cameraTransform: " + cameraTransform.name);
-            }
-            else
-            {
-                Debug.LogError("No Main Camera found in the scene! Ensure a camera is tagged as 'MainCamera'.");
-            }
-        }
+        // Button listeners
+        nameButtonAlex.onClick.AddListener(() => OnNameChosen());
+        yesButton.onClick.AddListener(() => OnChoiceMade(true));
+        noButton.onClick.AddListener(() => OnChoiceMade(false));
     }
-
 
     void Update()
     {
-        // Add a null check to prevent errors if the player isn't assigned.
-        if (player == null)
-            return;
+        if (player == null) return;
 
         float distance = Vector3.Distance(player.position, transform.position);
 
-        if (!isTalking && distance <= maxTalkDistance && Input.GetKeyDown(KeyCode.E))
+        if (distance <= maxTalkDistance && Input.GetKeyDown(KeyCode.E))
         {
-            StartTalking();
+            if (!isTalking)
+                StartTalking();
+            else
+                NextLineOrStop();
         }
 
-        if (isTalking && (distance > maxTalkDistance || Input.GetKeyDown(KeyCode.E)))
+        if (isTalking && distance > maxTalkDistance)
+            StopTalking();
+    }
+
+    void StartTalking()
+    {
+        isTalking = true;
+        currentLine = 0;
+
+        if (animator != null)
+            animator.SetBool("isTalking", true);
+
+        dialoguePanel.SetActive(true);
+        ShowDialogueLine(currentLine);
+
+        // Mute BGM
+        if (bgmController != null)
+            bgmController.MuteBGM();
+    }
+
+
+    void NextLineOrStop()
+    {
+        // If waiting for player input, don't advance automatically
+        if (!nameChosen && currentLine == 0)
+            return;
+
+        if (currentLine < npcDialogues.Length - 1)
+        {
+            currentLine++;
+            ShowDialogueLine(currentLine);
+        }
+        else
         {
             StopTalking();
         }
     }
 
-    void StartTalking()
+    void ShowDialogueLine(int index)
     {
-        if (animator != null)
+        if (typeCoroutine != null)
+            StopCoroutine(typeCoroutine);
+
+        // Play audio if available
+        if (audioSource != null && npcVoices != null && index < npcVoices.Length && npcVoices[index] != null)
         {
-            animator.SetBool("isTalking", true);
+            audioSource.Stop();
+            audioSource.clip = npcVoices[index];
+            audioSource.Play();
         }
 
-        isTalking = true;
+        // Show text word by word
+        typeCoroutine = StartCoroutine(TypeText(npcDialogues[index]));
 
-        if (npcCam != null && playerCam != null)
-        {
-            npcCam.Priority = 30;   // Switch to NPC close-up
-            playerCam.Priority = 10;
-        }
+        // Special panels
+        if (index == 0 && !nameChosen)
+            nameChoicePanel.SetActive(true);
         else
+            nameChoicePanel.SetActive(false);
+
+        if (index == 2 && nameChosen) // Third line = Yes/No choice
+            choicePanel.SetActive(true);
+        else
+            choicePanel.SetActive(false);
+    }
+
+    IEnumerator TypeText(string line)
+    {
+        dialogueText.text = "";
+        string[] words = line.Split(' ');
+
+        foreach (string word in words)
         {
-            Debug.LogError("Cinemachine Cameras not assigned! Please assign them in the Inspector.");
+            dialogueText.text += word + " ";
+            yield return new WaitForSeconds(wordDelay);
         }
     }
 
     void StopTalking()
     {
-        if (animator != null)
-        {
-            animator.SetBool("isTalking", false);
-        }
-
         isTalking = false;
 
-        if (npcCam != null && playerCam != null)
-        {
-            npcCam.Priority = 10;   // Back to AR camera
-            playerCam.Priority = 20;
-        }
+        if (animator != null)
+            animator.SetBool("isTalking", false);
+
+        dialoguePanel.SetActive(false);
+        nameChoicePanel.SetActive(false);
+        choicePanel.SetActive(false);
+
+        if (audioSource != null)
+            audioSource.Stop();
+
+        currentLine = 0;
+
+        if (typeCoroutine != null)
+            StopCoroutine(typeCoroutine);
+
+        // Unmute BGM
+        if (bgmController != null)
+            bgmController.UnmuteBGM();
+    }
+
+    void OnNameChosen()
+    {
+        nameChosen = true;
+        nameChoicePanel.SetActive(false);
+        NextLineOrStop();
+    }
+
+    void OnChoiceMade(bool answerYes)
+    {
+        choicePanel.SetActive(false);
+
+        if (answerYes)
+            currentLine = 3; // Yes dialogue
+        else
+            currentLine = 4; // No dialogue
+
+        ShowDialogueLine(currentLine);
     }
 }
