@@ -122,6 +122,7 @@ public class Health : MonoBehaviour
             // Special case for Tikbalang
             TikbalangMiniboss tikbalang = GetComponent<TikbalangMiniboss>();
             tikbalang.enabled = false;
+            GameUIManager.Instance.ShowVictoryScreen();
         }
         else // Enemy
         {
@@ -129,7 +130,8 @@ public class Health : MonoBehaviour
             NormalMob enemyAI = GetComponent<NormalMob>();
             if (enemyAI != null) enemyAI.enabled = false;
 
-            Destroy(gameObject, 8f); // wait for death anim
+            Destroy(gameObject, 3f); // wait for death anim
         }
+
     }
 }

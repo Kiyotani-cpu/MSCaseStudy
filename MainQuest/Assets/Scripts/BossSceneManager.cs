@@ -1,6 +1,6 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.SceneManagement;
+using UnityEngine.Video;
 
 public class BossSceneManager : MonoBehaviour
 {
@@ -8,9 +8,11 @@ public class BossSceneManager : MonoBehaviour
 
     private Transform playerTransform;
     private GameObject bossPrefab;
+    private MonoBehaviour playerController; // assign movement script dynamically
 
     [Header("Intro Settings")]
-    public float introDuration = 5f;
+    public VideoPlayer videoPlayer; // Assign in Inspector
+    public string videoFileName = "boss_intro.mp4"; // must be inside StreamingAssets
 
     private void Awake()
     {
@@ -27,33 +29,61 @@ public class BossSceneManager : MonoBehaviour
     {
         playerTransform = player;
         bossPrefab = boss;
-        StartCoroutine(LoadCutScene());
+
+        // Find player movement script (replace with your actual script type if possible)
+        playerController = player.GetComponent<PlayerMovement>()
+                        ?? player.GetComponent<PlayerAnimatorController>()
+                        ?? player.GetComponent<MonoBehaviour>(); // fallback
+
+        StartCoroutine(PlayIntroVideo());
     }
 
-    private IEnumerator LoadCutScene()
+    private IEnumerator PlayIntroVideo()
     {
-        AsyncOperation asyncLoad = SceneManager.LoadSceneAsync("MiniBossCutScene");
-        while (!asyncLoad.isDone)
-            yield return null;
-
-        // Wait for intro duration
-        yield return new WaitForSeconds(introDuration);
-
-        // Load boss fight scene
-        AsyncOperation asyncFight = SceneManager.LoadSceneAsync("MiniBossFightScene");
-        while (!asyncFight.isDone)
-            yield return null;
-
-        // Move player to spawn point near boss
-        GameObject spawnPoint = GameObject.FindWithTag("BossSpawnPoint");
-        if (spawnPoint != null && playerTransform != null)
+        if (videoPlayer == null)
         {
-            playerTransform.position = spawnPoint.transform.position;
-            playerTransform.rotation = spawnPoint.transform.rotation;
+            Debug.LogError("VideoPlayer not assigned!");
+            yield break;
         }
 
-        // Enable boss prefab
+        // Build video path
+        string videoPath = System.IO.Path.Combine(Application.streamingAssetsPath, videoFileName);
+        videoPlayer.url = videoPath;
+        Debug.Log("Video path: " + videoPlayer.url);
+
+        // Disable player control
+        if (playerController != null)
+            playerController.enabled = false;
+
+        // Make sure the video object is active
+        videoPlayer.gameObject.SetActive(true);
+
+        // Prepare video before playing
+        videoPlayer.Prepare();
+        while (!videoPlayer.isPrepared)
+        {
+            yield return null;
+        }
+
+        videoPlayer.Play();
+        Debug.Log("Video started!");
+
+        // Wait until video finishes
+        while (videoPlayer.isPlaying)
+            yield return null;
+
+        // Hide video after playback
+        videoPlayer.gameObject.SetActive(false);
+
+        // Enable boss
         if (bossPrefab != null)
+        {
             bossPrefab.SetActive(true);
+            Debug.Log("Boss enabled after intro video!");
+        }
+
+        // Re-enable player control
+        if (playerController != null)
+            playerController.enabled = true;
     }
 }
