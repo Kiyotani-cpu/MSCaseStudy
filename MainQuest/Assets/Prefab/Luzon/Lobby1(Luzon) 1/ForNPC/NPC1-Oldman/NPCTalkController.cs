@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine.UI;
 using System.Collections;
 using Cinemachine;
+using UnityEngine.SceneManagement; // for scene loading
 
 public class NPCTalkController : MonoBehaviour
 {
@@ -13,25 +14,30 @@ public class NPCTalkController : MonoBehaviour
     public CinemachineVirtualCamera playerCam;
 
     [Header("Dialogue UI")]
-    public GameObject dialoguePanel;      // Panel for general dialogue
+    public GameObject dialoguePanel;
     public TextMeshProUGUI dialogueText;
-    public GameObject nameChoicePanel;    // Panel to choose name (Alex)
-    public GameObject choicePanel;        // Panel for Yes/No choice
+    public GameObject nameChoicePanel;
+    public GameObject choicePanel;
     public Button nameButtonAlex;
     public Button yesButton;
     public Button noButton;
+    public Button nextButton;
+    public Button endButton;
 
     [Header("Dialogue Data")]
-    [TextArea] public string[] npcDialogues;   // Regular dialogue lines
-    public AudioClip[] npcVoices;              // Optional voice lines
+    [TextArea] public string[] npcDialogues;
+    public AudioClip[] npcVoices;
     public AudioSource audioSource;
 
     [Header("Settings")]
     public float maxTalkDistance = 3f;
-    public float wordDelay = 0.25f; // seconds per word
+    public float wordDelay = 0.25f;
 
     [Header("BGM")]
     public BGMController bgmController;
+
+    [Header("Scene Control")]
+    public string nextSceneName = "NextScene"; // set this in Inspector
 
     private bool isTalking = false;
     private int currentLine = 0;
@@ -40,15 +46,25 @@ public class NPCTalkController : MonoBehaviour
 
     void Start()
     {
-        // Hide panels initially
         dialoguePanel.SetActive(false);
         nameChoicePanel.SetActive(false);
         choicePanel.SetActive(false);
 
-        // Button listeners
-        nameButtonAlex.onClick.AddListener(() => OnNameChosen());
-        yesButton.onClick.AddListener(() => OnChoiceMade(true));
-        noButton.onClick.AddListener(() => OnChoiceMade(false));
+        if (nameButtonAlex != null) nameButtonAlex.onClick.AddListener(() => OnNameChosen());
+        if (yesButton != null) yesButton.onClick.AddListener(() => OnChoiceMade(true));
+        if (noButton != null) noButton.onClick.AddListener(() => OnChoiceMade(false));
+
+        if (nextButton != null)
+        {
+            nextButton.onClick.AddListener(OnNextButton);
+            nextButton.gameObject.SetActive(false);
+        }
+
+        if (endButton != null)
+        {
+            endButton.onClick.AddListener(StopTalking);
+            endButton.gameObject.SetActive(false);
+        }
     }
 
     void Update()
@@ -63,6 +79,25 @@ public class NPCTalkController : MonoBehaviour
                 StartTalking();
             else
                 NextLineOrStop();
+        }
+
+        if (Input.GetMouseButtonDown(0) ||
+            (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
+        {
+            Vector3 inputPos = Input.mousePresent ? Input.mousePosition : (Vector3)Input.GetTouch(0).position;
+            Ray ray = Camera.main.ScreenPointToRay(inputPos);
+            RaycastHit hit;
+
+            if (Physics.Raycast(ray, out hit))
+            {
+                if (hit.transform == transform && distance <= maxTalkDistance)
+                {
+                    if (!isTalking)
+                        StartTalking();
+                    else
+                        NextLineOrStop();
+                }
+            }
         }
 
         if (isTalking && distance > maxTalkDistance)
@@ -80,15 +115,21 @@ public class NPCTalkController : MonoBehaviour
         dialoguePanel.SetActive(true);
         ShowDialogueLine(currentLine);
 
-        // Mute BGM
         if (bgmController != null)
             bgmController.MuteBGM();
-    }
 
+        if (npcCam != null && playerCam != null)
+        {
+            npcCam.Priority = 20;
+            playerCam.Priority = 10;
+        }
+
+        Cursor.visible = true;
+        Cursor.lockState = CursorLockMode.None;
+    }
 
     void NextLineOrStop()
     {
-        // If waiting for player input, don't advance automatically
         if (!nameChosen && currentLine == 0)
             return;
 
@@ -108,7 +149,6 @@ public class NPCTalkController : MonoBehaviour
         if (typeCoroutine != null)
             StopCoroutine(typeCoroutine);
 
-        // Play audio if available
         if (audioSource != null && npcVoices != null && index < npcVoices.Length && npcVoices[index] != null)
         {
             audioSource.Stop();
@@ -116,22 +156,16 @@ public class NPCTalkController : MonoBehaviour
             audioSource.Play();
         }
 
-        // Show text word by word
-        typeCoroutine = StartCoroutine(TypeText(npcDialogues[index]));
+        typeCoroutine = StartCoroutine(TypeText(npcDialogues[index], index));
 
-        // Special panels
-        if (index == 0 && !nameChosen)
-            nameChoicePanel.SetActive(true);
-        else
-            nameChoicePanel.SetActive(false);
+        nameChoicePanel.SetActive(index == 0 && !nameChosen);
+        choicePanel.SetActive(index == 2 && nameChosen);
 
-        if (index == 2 && nameChosen) // Third line = Yes/No choice
-            choicePanel.SetActive(true);
-        else
-            choicePanel.SetActive(false);
+        if (nextButton != null) nextButton.gameObject.SetActive(false);
+        if (endButton != null) endButton.gameObject.SetActive(false);
     }
 
-    IEnumerator TypeText(string line)
+    IEnumerator TypeText(string line, int lineIndex)
     {
         dialogueText.text = "";
         string[] words = line.Split(' ');
@@ -140,6 +174,30 @@ public class NPCTalkController : MonoBehaviour
         {
             dialogueText.text += word + " ";
             yield return new WaitForSeconds(wordDelay);
+        }
+
+        typeCoroutine = null;
+
+        // After text finishes typing
+        if (lineIndex == 1 && nextButton != null)
+        {
+            nextButton.gameObject.SetActive(true);
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
+        }
+
+        if (lineIndex == 3) // Yes dialogue finished
+        {
+            yield return new WaitForSeconds(7f); // small pause
+            if (!string.IsNullOrEmpty(nextSceneName))
+                SceneManager.LoadScene(nextSceneName);
+        }
+
+        if (lineIndex == 4 && endButton != null) // No dialogue finished
+        {
+            endButton.gameObject.SetActive(true);
+            Cursor.visible = true;
+            Cursor.lockState = CursorLockMode.None;
         }
     }
 
@@ -160,11 +218,25 @@ public class NPCTalkController : MonoBehaviour
         currentLine = 0;
 
         if (typeCoroutine != null)
+        {
             StopCoroutine(typeCoroutine);
+            typeCoroutine = null;
+        }
 
-        // Unmute BGM
         if (bgmController != null)
             bgmController.UnmuteBGM();
+
+        if (npcCam != null && playerCam != null)
+        {
+            playerCam.Priority = 20;
+            npcCam.Priority = 10;
+        }
+
+        Cursor.visible = false;
+        Cursor.lockState = CursorLockMode.Locked;
+
+        if (nextButton != null) nextButton.gameObject.SetActive(false);
+        if (endButton != null) endButton.gameObject.SetActive(false);
     }
 
     void OnNameChosen()
@@ -179,10 +251,38 @@ public class NPCTalkController : MonoBehaviour
         choicePanel.SetActive(false);
 
         if (answerYes)
-            currentLine = 3; // Yes dialogue
+        {
+            currentLine = 3;
+            ShowDialogueLine(currentLine);
+        }
         else
-            currentLine = 4; // No dialogue
+        {
+            currentLine = 4;
+            ShowDialogueLine(currentLine);
+        }
+    }
 
-        ShowDialogueLine(currentLine);
+    public void OnNextButton()
+    {
+        if (typeCoroutine != null)
+        {
+            StopCoroutine(typeCoroutine);
+            dialogueText.text = npcDialogues[currentLine];
+            typeCoroutine = null;
+            return;
+        }
+
+        if (currentLine == 1)
+        {
+            if (currentLine < npcDialogues.Length - 1)
+            {
+                currentLine++;
+                ShowDialogueLine(currentLine);
+            }
+            else
+            {
+                StopTalking();
+            }
+        }
     }
 }
