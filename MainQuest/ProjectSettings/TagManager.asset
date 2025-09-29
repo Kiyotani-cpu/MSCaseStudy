@@ -5,6 +5,11 @@ TagManager:
   serializedVersion: 2
   tags:
   - BossSpawnPoint
+  - Enemy
+  - AttackButton
+  - RollButton
+  - WeaponButton
+  - PlayerSlider
   layers:
   - Default
   - TransparentFX
