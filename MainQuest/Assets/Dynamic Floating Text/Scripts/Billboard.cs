@@ -1,15 +1,22 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class Billboard : MonoBehaviour
 {
+    [SerializeField] private Camera targetCamera;
 
-    // Standard Billboard script which makes canvas objects always look
-    // at the camera
-    
+    void Awake()
+    {
+        // Auto-assign if not set in Inspector
+        if (targetCamera == null)
+            targetCamera = Camera.main;
+    }
+
     void LateUpdate()
     {
-        transform.LookAt(transform.position + DynamicTextManager.mainCamera.forward);
+        if (targetCamera != null)
+        {
+            // Face the camera
+            transform.LookAt(transform.position + targetCamera.transform.forward);
+        }
     }
 }
