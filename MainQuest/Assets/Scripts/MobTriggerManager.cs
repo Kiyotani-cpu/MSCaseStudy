@@ -55,6 +55,13 @@ public class MobTriggerManager : MonoBehaviour
 
         if (activeMobs.Count == 0)
         {
+            // Disable all mobs in the completed wave
+            foreach (var mob in waves[currentWaveIndex].mobs)
+            {
+                if (mob != null)
+                    mob.SetActive(false);
+            }
+
             waveInProgress = false;
 
             if (waves[currentWaveIndex].isBeforeBossWave)

@@ -14,6 +14,12 @@ public class PauseMenu : MonoBehaviour
             pausePanel.SetActive(false); // hide on start
     }
 
+    void Update()
+    {
+        // ESC key handling is now in PlayerCameraController to avoid conflicts
+        // This method is kept for other input methods if needed
+    }
+
     // Call this when pause button is clicked
     public void TogglePause()
     {
@@ -34,6 +40,10 @@ public class PauseMenu : MonoBehaviour
 
         Time.timeScale = 0f; // freeze game
         isPaused = true;
+        
+        // Show cursor when paused
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
     }
 
     public void ResumeGame()
@@ -43,6 +53,10 @@ public class PauseMenu : MonoBehaviour
 
         Time.timeScale = 1f; // unfreeze
         isPaused = false;
+        
+        // Hide cursor when resuming
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
     }
 
     public void NewGame()
@@ -54,6 +68,22 @@ public class PauseMenu : MonoBehaviour
     public void GoToMenu()
     {
         Time.timeScale = 1f; // reset time
-        SceneManager.LoadScene("MainMenu"); // replace with your main menu scene name
+        SceneManager.LoadScene("Menu"); // replace with your main menu scene name
+    }
+
+    public void QuitGame()
+    {
+        Application.Quit();
+        
+        // For testing in editor
+        #if UNITY_EDITOR
+        UnityEditor.EditorApplication.isPlaying = false;
+        #endif
+    }
+
+    // Public method to check if game is paused
+    public bool IsPaused()
+    {
+        return isPaused;
     }
 }

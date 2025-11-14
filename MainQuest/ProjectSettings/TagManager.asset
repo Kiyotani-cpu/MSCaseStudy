@@ -10,6 +10,7 @@ TagManager:
   - RollButton
   - WeaponButton
   - PlayerSlider
+  - Ground
   layers:
   - Default
   - TransparentFX

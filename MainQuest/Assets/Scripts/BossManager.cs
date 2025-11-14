@@ -7,6 +7,7 @@ public class GameUIManager : MonoBehaviour
     [Header("UI References")]
     public GameObject mainUI;
     public GameObject victoryUI;
+    public GameObject defeatUI;
 
     private void Awake()
     {
@@ -30,5 +31,13 @@ public class GameUIManager : MonoBehaviour
         if (victoryUI != null) victoryUI.SetActive(true);
 
         Debug.Log("Victory UI shown!");
+    }
+
+    public void ShowDefeatScreen()
+    {
+        if (mainUI != null) mainUI.SetActive(false);
+        if (defeatUI != null) defeatUI.SetActive(true);
+        // Implement defeat UI similarly
+        Debug.Log("Defeat UI shown!");
     }
 }

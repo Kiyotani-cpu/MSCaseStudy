@@ -1,188 +1,136 @@
 using UnityEngine;
+using System.Collections;
 
 public class NormalMob : MonoBehaviour
 {
     [Header("Components")]
     public Animator animator;
     public Rigidbody rb;
-    public Collider attackCollider; // Assign in inspector
+    public Collider attackCollider;
 
-    [Header("Movement Settings")]
+    [Header("Settings")]
     public float walkSpeed = 1.5f;
     public float chaseSpeed = 3f;
     public float chaseRange = 6f;
     public float attackRange = 2f;
-
-    [Header("Wandering Settings")]
+    public float visionRange = 8f;
     public float wanderRadius = 5f;
-    public float idleTimeMin = 2f;
-    public float idleTimeMax = 5f;
 
-    [Header("Vision Settings")]
-    public float visionDistance = 8f;
-
-    [Header("Home Settings")]
+    [Header("Home")]
     public Transform homePoint;
-    public float returnSpeed = 2f;
 
+    private Transform target;
+    private Vector3 homePos;
+    private Vector3 wanderPos;
     private bool isAttacking = false;
-    private Vector3 wanderTarget;
-    private Vector3 homePosition;
-    private Transform currentTarget;
-
-    private enum WanderState { Idle, Walking }
-    private WanderState currentState = WanderState.Idle;
-    private float stateTimer = 0f;
+    private float idleTimer;
 
     void Start()
     {
-        if (animator == null) animator = GetComponent<Animator>();
-        if (rb == null) rb = GetComponent<Rigidbody>();
+        animator = animator ?? GetComponent<Animator>();
+        rb = rb ?? GetComponent<Rigidbody>();
+        if (attackCollider) attackCollider.enabled = false;
 
-        if (attackCollider != null)
-            attackCollider.enabled = false;
-
-        homePosition = (homePoint != null) ? homePoint.position : transform.position;
-        EnterIdle();
+        homePos = homePoint ? homePoint.position : transform.position;
+        PickNewWanderPoint();
+        idleTimer = Random.Range(2f, 5f);
     }
 
     void Update()
     {
         if (isAttacking) return;
 
-        FindTarget(); // 🔹 always search for closest Player or Summon
-        if (currentTarget == null)
-        {
-            HandleWandering();
-            return;
-        }
+        FindTarget();
 
-        float distance = Vector3.Distance(transform.position, currentTarget.position);
+        if (target)
+        {
+            float dist = Vector3.Distance(transform.position, target.position);
 
-        if (distance <= attackRange)
-        {
-            StartCoroutine(DoAttack());
-            animator.SetFloat("Speed", 0f);
-        }
-        else if (distance <= chaseRange)
-        {
-            MoveTowards(currentTarget.position, chaseSpeed);
-            animator.SetFloat("Speed", 1f);
-        }
-        else
-        {
-            float homeDist = Vector3.Distance(transform.position, homePosition);
-            if (homeDist > wanderRadius * 2f)
+            if (dist <= attackRange)
             {
-                MoveTowards(homePosition, returnSpeed);
-                animator.SetFloat("Speed", 0.5f);
+                StartCoroutine(Attack());
+            }
+            else if (dist <= chaseRange)
+            {
+                MoveTo(target.position, chaseSpeed);
+                animator.SetFloat("Speed", 1f);
             }
             else
             {
-                HandleWandering();
+                target = null; // lost sight
             }
+        }
+        else
+        {
+            Wander();
         }
     }
 
     void FindTarget()
     {
-        Collider[] hits = Physics.OverlapSphere(transform.position, visionDistance);
+        Collider[] hits = Physics.OverlapSphere(transform.position, visionRange);
+        float closest = Mathf.Infinity;
+        Transform nearest = null;
 
-        float closestDist = Mathf.Infinity;
-        Transform closest = null;
-
-        foreach (Collider hit in hits)
+        foreach (var h in hits)
         {
-            Health h = hit.GetComponent<Health>();
-            if (h != null && (h.faction == Faction.Player || h.faction == Faction.Summon))
+            Health health = h.GetComponent<Health>();
+            if (health && (health.faction == Faction.Player || health.faction == Faction.Summon))
             {
-                float dist = Vector3.Distance(transform.position, h.transform.position);
-                if (dist < closestDist)
+                float d = Vector3.Distance(transform.position, h.transform.position);
+                if (d < closest)
                 {
-                    closestDist = dist;
-                    closest = h.transform;
+                    closest = d;
+                    nearest = h.transform;
                 }
             }
         }
 
-        currentTarget = closest;
+        target = nearest;
     }
 
-    void HandleWandering()
+    void Wander()
     {
-        stateTimer -= Time.deltaTime;
+        idleTimer -= Time.deltaTime;
 
-        if (currentState == WanderState.Idle)
+        if (idleTimer <= 0f)
         {
-            animator.SetFloat("Speed", 0f);
-
-            if (stateTimer <= 0f)
-            {
-                PickNewWanderTarget();
-                EnterWalking();
-            }
+            PickNewWanderPoint();
+            idleTimer = Random.Range(3f, 6f);
         }
-        else if (currentState == WanderState.Walking)
-        {
-            MoveTowards(wanderTarget, walkSpeed);
-            animator.SetFloat("Speed", 0.5f);
 
-            if (Vector3.Distance(transform.position, wanderTarget) < 0.5f || stateTimer <= 0f)
-            {
-                EnterIdle();
-            }
-        }
+        MoveTo(wanderPos, walkSpeed);
+        animator.SetFloat("Speed", 0.5f);
+
+        if (Vector3.Distance(transform.position, wanderPos) < 0.5f)
+            idleTimer = 0f; // pick new point
     }
 
-    void EnterIdle()
+    void PickNewWanderPoint()
     {
-        currentState = WanderState.Idle;
-        stateTimer = Random.Range(idleTimeMin, idleTimeMax);
+        Vector2 rnd = Random.insideUnitCircle * wanderRadius;
+        wanderPos = new Vector3(homePos.x + rnd.x, homePos.y, homePos.z + rnd.y);
     }
 
-    void EnterWalking()
+    void MoveTo(Vector3 targetPos, float speed)
     {
-        currentState = WanderState.Walking;
-        stateTimer = Random.Range(2f, 5f);
-    }
-
-    void PickNewWanderTarget()
-    {
-        Vector2 randomCircle = Random.insideUnitCircle * wanderRadius;
-        wanderTarget = new Vector3(homePosition.x + randomCircle.x, homePosition.y, homePosition.z + randomCircle.y);
-    }
-
-    void MoveTowards(Vector3 target, float speed)
-    {
-        Vector3 targetPos = new Vector3(target.x, transform.position.y, target.z);
+        targetPos.y = transform.position.y;
         transform.position = Vector3.MoveTowards(transform.position, targetPos, speed * Time.deltaTime);
+        Vector3 dir = (targetPos - transform.position).normalized;
 
-        Vector3 direction = (targetPos - transform.position).normalized;
-        if (direction.magnitude > 0.1f)
-            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(direction), 5f * Time.deltaTime);
+        if (dir.magnitude > 0.1f)
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), 5f * Time.deltaTime);
     }
 
-    System.Collections.IEnumerator DoAttack()
+    IEnumerator Attack()
     {
         isAttacking = true;
         animator.SetTrigger("Attack");
-
-        yield return new WaitForSeconds(1f); // attack anim duration
-        yield return new WaitForSeconds(0.5f); // cooldown
+        yield return new WaitForSeconds(1f); // attack animation
         isAttacking = false;
     }
 
     // Animation Events
-    public void EnableAttackCollider()
-    {
-        if (attackCollider != null)
-            attackCollider.enabled = true;
-    }
-
-    public void DisableAttackCollider()
-    {
-        if (attackCollider != null)
-            attackCollider.enabled = false;
-    }
-    
+    public void EnableAttackCollider() { if (attackCollider) attackCollider.enabled = true; }
+    public void DisableAttackCollider() { if (attackCollider) attackCollider.enabled = false; }
 }

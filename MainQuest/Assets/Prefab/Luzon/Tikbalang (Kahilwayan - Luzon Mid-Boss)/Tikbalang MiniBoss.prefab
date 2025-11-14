@@ -65,7 +65,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: 'Tikbalang
+  m_text: 'Boss: Tikbalang
 
 '
   m_isRightToLeft: 0
@@ -232,15 +232,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalPosition.x
-      value: -140.7
+      value: -4.808805
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalPosition.z
-      value: -28.9
+      value: -6.36322
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalRotation.w
@@ -248,15 +248,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalRotation.x
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalRotation.y
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalRotation.z
-      value: 0
+      value: -0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 42734fa357ec9f94d8d786849649bdb5, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -1342,6 +1342,7 @@ MonoBehaviour:
   currentHealth: 0
   faction: 1
   animator: {fileID: 7382668367568441069}
+  isTikbalang: 1
   isPlayer: 0
   textBaseOffset: {x: 0, y: 4, z: 0}
   textRandomRadius: 0.5
@@ -1563,7 +1564,8 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects: []
+    m_RemovedGameObjects:
+    - {fileID: 644040921333436275, guid: b46088409c888ee4bbe99f36aa11adce, type: 3}
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 3010233609560678384, guid: b46088409c888ee4bbe99f36aa11adce, type: 3}
       insertIndex: -1

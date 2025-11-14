@@ -1,4 +1,5 @@
 using UnityEngine;
+
 public enum Faction
 {
     Player,
@@ -21,16 +22,17 @@ public class Health : MonoBehaviour
     public Vector3 textBaseOffset = new Vector3(0, 2f, 0);   // Default above head
     public float textRandomRadius = 0.5f;                    // Random horizontal spread
     public event System.Action<int> OnHealthChanged;
+    public event System.Action OnDeath; // Added OnDeath event
 
     private bool isDead = false;
     public bool IsDead => isDead;
     // Cache reference to text data
     private DynamicTextData textData;
-
+    private PlayerLevel playerlevel;
     void Start()
     {
         currentHealth = maxHealth;
-        
+
         OnHealthChanged?.Invoke(currentHealth);
         // Try to get textData from either Player or Enemy
         if (isPlayer)
@@ -56,7 +58,6 @@ public class Health : MonoBehaviour
         if (animator != null)
             animator.SetTrigger("Hurt");
 
-        // Reduce health
         // Reduce health
         currentHealth -= damage;
         currentHealth = Mathf.Clamp(currentHealth, 0, maxHealth);
@@ -89,49 +90,95 @@ public class Health : MonoBehaviour
         }
     }
 
-
     void Die()
     {
         if (isDead) return;
         isDead = true;
         OnHealthChanged?.Invoke(0);
-        // Play death animation
+        OnDeath?.Invoke();
+
         if (animator != null)
             animator.SetTrigger("Die");
 
         if (isPlayer)
         {
-            // Disable player controller when dead
             PlayerAnimatorController controller = GetComponent<PlayerAnimatorController>();
             if (controller != null)
                 controller.enabled = false;
-
-            Debug.Log("Player is dead!");
+            GameUIManager.Instance.ShowDefeatScreen();
         }
         else if (faction == Faction.Summon)
         {
-            // Summon death
             SummonAI summonAI = GetComponent<SummonAI>();
             if (summonAI != null)
-            {
                 summonAI.Die();
-            }
         }
         else if (isTikbalang)
         {
-            // Special case for Tikbalang
             TikbalangMiniboss tikbalang = GetComponent<TikbalangMiniboss>();
             tikbalang.enabled = false;
+            GiveXPToPlayer(200, "Tikbalang Boss");
             GameUIManager.Instance.ShowVictoryScreen();
         }
         else // Enemy
         {
-            // Disable enemy AI / attack scripts
+            string enemyType = gameObject.name;
+            int xpAmount = GetXPReward();
+            GiveXPToPlayer(xpAmount, enemyType);
+
             NormalMob enemyAI = GetComponent<NormalMob>();
             if (enemyAI != null) enemyAI.enabled = false;
 
-            Destroy(gameObject, 3f); // wait for death anim
+            Destroy(gameObject, 3f);
         }
+    }
 
+    private void GiveXPToPlayer(int xpAmount, string enemyType)
+    {
+        PlayerLevel playerLevel = FindObjectOfType<PlayerLevel>();
+        if (playerLevel != null)
+        {
+            playerLevel.AddXP(xpAmount, enemyType);
+        }
+    }
+
+    private int GetXPReward()
+    {
+        // Your logic for determining XP based on enemy type
+        return gameObject.name switch
+        {
+            string name when name.Contains("Tikbalang") => 100,
+            string name when name.Contains("Aswang") => 20,
+            _ => 15
+        };
+    }
+
+    // New method to increase max health
+    public void IncreaseMaxHealth(int amount)
+    {
+        maxHealth += amount;
+        currentHealth += amount; // Also heal the increased amount
+
+        OnHealthChanged?.Invoke(currentHealth);
+
+        Debug.Log($"Max health increased by {amount}. New max: {maxHealth}");
+    }
+
+    public void Heal(int amount)
+    {
+        if (isDead) return;
+
+        currentHealth += amount;
+        currentHealth = Mathf.Min(currentHealth, maxHealth);
+
+        OnHealthChanged?.Invoke(currentHealth);
+
+        // Show healing text - FIXED: Using only 3 arguments
+        if (textData != null)
+        {
+            Vector3 spawnPos = transform.position + textBaseOffset;
+            // Create a new text data for healing color or use existing one
+            DynamicTextManager.CreateText(spawnPos, $"+{amount}", textData);
+        }
     }
 }

@@ -418,7 +418,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.596613, y: 0.927191, z: -13.977621}
-  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
+  m_LocalScale: {x: 1.4999999, y: 1.5, z: 1.4999999}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5758774323602225733}
@@ -513,8 +513,8 @@ MonoBehaviour:
   weaponButton: {fileID: 0}
   animator: {fileID: 2970304093575173258}
   rb: {fileID: 1543641367311106054}
-  moveSpeed: 15
-  rollSpeed: 25
+  moveSpeed: 8
+  rollSpeed: 50
   rollDistance: 4
   rollDuration: 0.8
   rollCooldown: 1.5

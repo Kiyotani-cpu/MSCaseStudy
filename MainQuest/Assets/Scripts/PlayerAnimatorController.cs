@@ -1,29 +1,27 @@
 using UnityEngine;
-using UnityEngine.UI;
-using Terresquall;
 
 public class PlayerAnimatorController : MonoBehaviour
 {
-    [Header("UI Buttons")]
-    [SerializeField] private Button attackButton;
-    [SerializeField] private Button rollButton;
-    [SerializeField] private Button weaponButton;
-
     [Header("Components")]
     public Animator animator;
     public Rigidbody rb;
 
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
+    public float rotationSpeed = 10f;
 
     [Header("Roll Settings")]
     public float rollSpeed = 8f;
-    private bool isRolling = false;
     public float rollDistance = 5f;
     public float rollDuration = 0.8f;
-    private float rollTimer = 0f;
     public float rollCooldown = 1.5f;
+
+    private bool isRolling = false;
+    private float rollTimer = 0f;
     private float rollCooldownTimer = 0f;
+    private Vector3 rollStartPos;
+    private Vector3 rollTargetPos;
+
     public bool IsEvading { get; private set; } = false;
 
     [Header("Attack Settings")]
@@ -32,42 +30,52 @@ public class PlayerAnimatorController : MonoBehaviour
     private float attackTimer = 0f;
 
     [Header("Weapon Settings")]
-    [SerializeField] private Collider swordCollider;
+    [SerializeField]
+    private Collider swordCollider;
+
+    [SerializeField]
+    private GameObject swordInHand;
     public bool IsWeaponDrawn = false;
-    [SerializeField] private GameObject swordInHand;
 
     private bool isBusy = false;
-    private Vector3 rollStartPos;
-    private Vector3 rollTargetPos;
 
     void Start()
     {
-        // Hook up UI buttons
-        if (attackButton != null) attackButton.onClick.AddListener(() => TryAttack());
-        if (rollButton != null) rollButton.onClick.AddListener(() => TryRoll());
-        if (weaponButton != null) weaponButton.onClick.AddListener(() => ToggleWeapon());
-
         DisableSwordCollider();
         UnequipSword();
     }
 
     void Update()
     {
-        HandleRollCooldown();
+        HandleCooldowns();
 
-        if (isRolling) HandleRoll();
-        else HandleMovement();
+        if (isRolling)
+            HandleRoll();
+        else if (!isBusy)
+            HandleMovement();
 
-        HandleAttackCooldown();
-
-        // --- Debug inputs ---
-        if (IsWeaponDrawn && Input.GetKeyDown(KeyCode.Mouse0)) TryAttack();
-        if (Input.GetKeyDown(KeyCode.Space)) TryRoll();
-        if (Input.GetKeyDown(KeyCode.Q)) ToggleWeapon();
+        HandleInputs();
     }
 
-    void HandleAttackCooldown()
+    void HandleInputs()
     {
+        // Attack
+        if (IsWeaponDrawn && Input.GetMouseButtonDown(0))
+            TryAttack();
+
+        // Roll
+        if (Input.GetKeyDown(KeyCode.Space))
+            TryRoll();
+
+        // Toggle Weapon
+        if (Input.GetKeyDown(KeyCode.Q))
+            ToggleWeapon();
+    }
+
+    void HandleCooldowns()
+    {
+        if (rollCooldownTimer > 0f)
+            rollCooldownTimer -= Time.deltaTime;
         if (isAttacking)
         {
             attackTimer += Time.deltaTime;
@@ -75,13 +83,46 @@ public class PlayerAnimatorController : MonoBehaviour
             {
                 isAttacking = false;
                 animator.ResetTrigger("Attack");
+                EndAction();
             }
+        }
+    }
+
+    void HandleMovement()
+    {
+        float inputX = Input.GetAxis("Horizontal");
+        float inputZ = Input.GetAxis("Vertical");
+
+        Vector3 camForward = Vector3
+            .Scale(Camera.main.transform.forward, new Vector3(1, 0, 1))
+            .normalized;
+        Vector3 camRight = Camera.main.transform.right;
+        Vector3 moveDirection = (camForward * inputZ + camRight * inputX).normalized;
+
+        float speed = moveDirection.magnitude;
+        animator.SetFloat("Speed", speed);
+
+        if (speed > 0.1f)
+        {
+            Vector3 targetVelocity = moveDirection * moveSpeed;
+            rb.velocity = new Vector3(targetVelocity.x, rb.velocity.y, targetVelocity.z);
+
+            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
+            transform.rotation = Quaternion.Slerp(
+                transform.rotation,
+                targetRotation,
+                Time.deltaTime * rotationSpeed
+            );
+        }
+        else
+        {
+            rb.velocity = new Vector3(0f, rb.velocity.y, 0f);
         }
     }
 
     void TryAttack()
     {
-        if (!isBusy && !isAttacking && IsWeaponDrawn)
+        if (!isBusy && !isAttacking)
             StartAttack();
     }
 
@@ -90,59 +131,15 @@ public class PlayerAnimatorController : MonoBehaviour
         isAttacking = true;
         attackTimer = 0f;
         isBusy = true;
+
         animator.SetTrigger("Attack");
         rb.velocity = Vector3.zero;
     }
 
-    void HandleMovement()
-    {
-        if (isRolling || isBusy) return;
-
-        float inputX = VirtualJoystick.GetAxis("Horizontal");
-        float inputZ = VirtualJoystick.GetAxis("Vertical");
-
-        float kbX = Input.GetAxis("Horizontal");
-        float kbZ = Input.GetAxis("Vertical");
-
-        float finalX = Mathf.Abs(inputX) > 0.01f ? inputX : kbX;
-        float finalZ = Mathf.Abs(inputZ) > 0.01f ? inputZ : kbZ;
-
-        // Camera forward (ignore Y so player stays on ground)
-        Vector3 camForward = Vector3.Scale(Camera.main.transform.forward, new Vector3(1, 0, 1)).normalized;
-        Vector3 camRight = Camera.main.transform.right;
-
-        // Convert input to camera space
-        Vector3 moveDirection = (camForward * finalZ + camRight * finalX).normalized;
-
-        float speed = moveDirection.magnitude;
-        animator.SetFloat("Speed", speed);
-
-        if (speed > 0f)
-        {
-            // Target velocity in camera-relative direction
-            Vector3 targetVelocity = moveDirection * moveSpeed;
-
-            // Smoothly move towards target velocity
-            rb.velocity = Vector3.Lerp(rb.velocity, new Vector3(targetVelocity.x, rb.velocity.y, targetVelocity.z), Time.deltaTime * 10f);
-
-            // Smooth rotation
-            Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
-            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * 10f);
-        }
-        else
-        {
-            // Decelerate smoothly instead of snapping to 0
-            rb.velocity = Vector3.Lerp(rb.velocity, new Vector3(0f, rb.velocity.y, 0f), Time.deltaTime * 10f);
-        }
-    }
-    void HandleRollCooldown()
-    {
-        if (rollCooldownTimer > 0f) rollCooldownTimer -= Time.deltaTime;
-    }
-
     void TryRoll()
     {
-        if (!isBusy && rollCooldownTimer <= 0f) StartRoll();
+        if (!isBusy && rollCooldownTimer <= 0f)
+            StartRoll();
     }
 
     void StartRoll()
@@ -150,8 +147,8 @@ public class PlayerAnimatorController : MonoBehaviour
         isRolling = true;
         rollTimer = 0f;
         rollCooldownTimer = rollCooldown;
-        animator.SetBool("IsRolling", true);
 
+        animator.SetBool("IsRolling", true);
         IsEvading = true;
         isBusy = true;
 
@@ -163,8 +160,6 @@ public class PlayerAnimatorController : MonoBehaviour
     {
         rollTimer += Time.deltaTime;
         float t = rollTimer / rollDuration;
-
-        // Smooth roll movement
         transform.position = Vector3.Lerp(rollStartPos, rollTargetPos, t);
 
         if (rollTimer >= rollDuration)
@@ -173,53 +168,58 @@ public class PlayerAnimatorController : MonoBehaviour
             animator.SetBool("IsRolling", false);
             IsEvading = false;
             rb.velocity = Vector3.zero;
-            isBusy = false;
+            EndAction();
         }
     }
 
     void ToggleWeapon()
     {
-        if (IsWeaponDrawn) SheathWeapon();
-        else UnsheathWeapon();
+        if (IsWeaponDrawn)
+            SheathWeapon();
+        else
+            UnsheathWeapon();
     }
 
     public void SheathWeapon()
     {
-        if (isBusy) return;
+        if (isBusy)
+            return;
         isBusy = true;
         animator.SetTrigger("Sheath");
         IsWeaponDrawn = false;
         animator.SetBool("IsWeaponDrawn", false);
-        // UnequipSword(); <-- REMOVE this, animation event will handle it
     }
 
     public void UnsheathWeapon()
     {
-        if (isBusy) return;
+        if (isBusy)
+            return;
         isBusy = true;
         animator.SetTrigger("Unsheath");
         IsWeaponDrawn = true;
         animator.SetBool("IsWeaponDrawn", true);
-        // EquipSword(); <-- REMOVE this, animation event will handle it
     }
 
+    // Animation Event Functions
+    public void EquipSword() => swordInHand.SetActive(true);
 
-    public void EquipSword()
+    public void UnequipSword() => swordInHand.SetActive(false);
+
+    public void EnableSwordCollider()
     {
-        Debug.Log("EquipSword() event triggered!");
-        swordInHand.SetActive(true);
+        if (swordCollider)
+            swordCollider.enabled = true;
     }
 
-    public void UnequipSword()
+    public void DisableSwordCollider()
     {
-        Debug.Log("UnequipSword() event triggered!");
-        swordInHand.SetActive(false);
+        if (swordCollider)
+            swordCollider.enabled = false;
     }
 
-
-
-    // Called by animation events
-    public void EnableSwordCollider() { if (swordCollider != null) swordCollider.enabled = true; }
-    public void DisableSwordCollider() { if (swordCollider != null) swordCollider.enabled = false; }
-    public void EndAction() { isBusy = false; Debug.Log("Action ended, controls unlocked."); }
+    public void EndAction()
+    {
+        isBusy = false;
+        Debug.Log("Action ended, controls unlocked.");
+    }
 }
