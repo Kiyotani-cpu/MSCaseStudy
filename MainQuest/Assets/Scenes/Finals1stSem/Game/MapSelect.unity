@@ -1307,7 +1307,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8, g: 0.8, b: 0.8, a: 0.5529412}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1811,7 +1811,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8018868, g: 0.8018868, b: 0.8018868, a: 0.5529412}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -2192,6 +2192,7 @@ GameObject:
   - component: {fileID: 1953725303}
   - component: {fileID: 1953725302}
   - component: {fileID: 1953725306}
+  - component: {fileID: 1953725307}
   m_Layer: 5
   m_Name: UI/UX
   m_TagString: Untagged
@@ -2297,6 +2298,31 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 15be4734b1083224bb9f4eb8bae058cb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &1953725307
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1953725301}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 963e9d8eb1a07084da9ea9393334e2d4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  levelButtons:
+  - button: {fileID: 477772796}
+    levelNumber: 1
+    objectToHide: {fileID: 0}
+    imageToColor: {fileID: 0}
+  - button: {fileID: 1578086037}
+    levelNumber: 2
+    objectToHide: {fileID: 9683392}
+    imageToColor: {fileID: 674961229}
+  - button: {fileID: 914884064}
+    levelNumber: 3
+    objectToHide: {fileID: 429644235}
+    imageToColor: {fileID: 1629257367}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
