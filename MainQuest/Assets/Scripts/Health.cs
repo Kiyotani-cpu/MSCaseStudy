@@ -116,7 +116,9 @@ public class Health : MonoBehaviour
         else if (isTikbalang)
         {
             TikbalangMiniboss tikbalang = GetComponent<TikbalangMiniboss>();
-            tikbalang.enabled = false;
+            if (tikbalang != null) tikbalang.enabled = false;
+            NormalMob enemyAI = GetComponent<NormalMob>();
+            if (enemyAI != null) enemyAI.enabled = false;
             GiveXPToPlayer(200, "Tikbalang Boss");
             GameUIManager.Instance.ShowVictoryScreen();
         }

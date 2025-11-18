@@ -6,11 +6,11 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/Etc/Testing/Menu.unity
-    guid: 33dd5fe84dc089c449f810cbf59ce525
+    path: Assets/Scenes/Finals1stSem/Game/Menu.unity
+    guid: 8c4159fd7faf6af4c94bcd77f63cd198
   - enabled: 1
-    path: Assets/Scenes/Etc/Testing/MapSelect.unity
-    guid: 6025f1ab7485d4b4da8fa4df86eea21a
+    path: Assets/Scenes/Finals1stSem/Game/MapSelect1.unity
+    guid: 29061150433fb2c48b2311514c1da02a
   - enabled: 1
     path: Assets/Scenes/Finals1stSem/Game/Level1Luzon.unity
     guid: 3963abe4346ec0944abc241efdc01028

@@ -224,6 +224,37 @@ Transform:
   - {fileID: 4412481869526262749}
   m_Father: {fileID: 6070808290086660573}
   m_LocalEulerAnglesHint: {x: -21.472797, y: -22.838348, z: 16.827124}
+--- !u!1 &1051018234991003262
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7285119993874330351}
+  m_Layer: 7
+  m_Name: GameObject
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7285119993874330351
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051018234991003262}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.04, y: 1.63, z: 0.4}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6637486227292837745}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1302636577867695902
 GameObject:
   m_ObjectHideFlags: 0
@@ -401,6 +432,8 @@ GameObject:
   - component: {fileID: 4145665159848806659}
   - component: {fileID: 5822614333738265416}
   - component: {fileID: 348893268873765165}
+  - component: {fileID: 1727344187832497710}
+  - component: {fileID: 2489463260838874568}
   m_Layer: 7
   m_Name: Player
   m_TagString: Player
@@ -418,11 +451,12 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 9.596613, y: 0.927191, z: -13.977621}
-  m_LocalScale: {x: 1.4999999, y: 1.5, z: 1.4999999}
+  m_LocalScale: {x: 1.5, y: 1.5, z: 1.5}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5758774323602225733}
   - {fileID: 5045746170958571069}
+  - {fileID: 7285119993874330351}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!95 &2970304093575173258
@@ -508,20 +542,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f66fa489e1d6e294ea23c12e83d67e02, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  attackButton: {fileID: 0}
-  rollButton: {fileID: 0}
-  weaponButton: {fileID: 0}
   animator: {fileID: 2970304093575173258}
   rb: {fileID: 1543641367311106054}
-  moveSpeed: 8
-  rollSpeed: 50
+  moveSpeed: 6
+  rotationSpeed: 10
+  rollSpeed: 25
   rollDistance: 4
   rollDuration: 0.8
   rollCooldown: 1.5
   attackCooldown: 1
   swordCollider: {fileID: 2914522298377837433}
-  IsWeaponDrawn: 0
   swordInHand: {fileID: 6507445902622948962}
+  IsWeaponDrawn: 0
 --- !u!114 &8312734825479043135
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -682,6 +714,53 @@ MonoBehaviour:
   bossBGM: {fileID: 0}
   victoryBGM: {fileID: 0}
   tikbalang: {fileID: 0}
+--- !u!114 &1727344187832497710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2217901213243598864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: acaa023300c61e94081d81c085268f77, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerTransform: {fileID: 6637486227292837745}
+  cameraFollowTarget: {fileID: 7285119993874330351}
+  playerCamera: {fileID: 0}
+  cameraDistance: 5
+  cameraHeight: 2
+  cameraSmoothSpeed: 5
+  cameraRotationSpeed: 2
+  cameraCollisionOffset: 0.3
+  minVerticalAngle: -30
+  maxVerticalAngle: 70
+  minCameraDistance: 1
+  maxCameraDistance: 8
+  mouseXInput: Mouse X
+  mouseYInput: Mouse Y
+  invertY: 0
+  collisionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  collisionSphereRadius: 0.3
+--- !u!114 &2489463260838874568
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2217901213243598864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15dc21f1f614098459ff8f7cfe1b1b3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentLevel: 1
+  currentXP: 0
+  xpToNextLevel: 100
+  xpMultiplier: 1.5
 --- !u!1 &2450075795431634510
 GameObject:
   m_ObjectHideFlags: 0

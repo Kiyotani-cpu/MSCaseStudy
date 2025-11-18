@@ -535,6 +535,14 @@ PrefabInstance:
       propertyPath: m_DataSource
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1141519747224164246, guid: 890dfc64b4d465e49ba158d2489166d2, type: 3}
+      propertyPath: m_PlayOnAwake
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1141519747224164246, guid: 890dfc64b4d465e49ba158d2489166d2, type: 3}
+      propertyPath: m_TargetTexture
+      value: 
+      objectReference: {fileID: 8400000, guid: 03b3451efa1dc9b4b9251e77a511d826, type: 2}
     - target: {fileID: 1410326006985742833, guid: 890dfc64b4d465e49ba158d2489166d2, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -551,6 +559,10 @@ PrefabInstance:
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
       value: NewGame
       objectReference: {fileID: 0}
+    - target: {fileID: 2515225529083319920, guid: 890dfc64b4d465e49ba158d2489166d2, type: 3}
+      propertyPath: m_Texture
+      value: 
+      objectReference: {fileID: 8400000, guid: 03b3451efa1dc9b4b9251e77a511d826, type: 2}
     - target: {fileID: 3498280112030631344, guid: 890dfc64b4d465e49ba158d2489166d2, type: 3}
       propertyPath: m_IsActive
       value: 0
@@ -1420,6 +1432,14 @@ PrefabInstance:
     - target: {fileID: 2235582975697740138, guid: 556b51bdc99af58448a6075ae192cecb, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3996042319113933177, guid: 556b51bdc99af58448a6075ae192cecb, type: 3}
+      propertyPath: maxHealth
+      value: 60
+      objectReference: {fileID: 0}
+    - target: {fileID: 3996042319113933177, guid: 556b51bdc99af58448a6075ae192cecb, type: 3}
+      propertyPath: isTikbalang
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 5495024113899856701, guid: 556b51bdc99af58448a6075ae192cecb, type: 3}
       propertyPath: m_LocalPosition.x
@@ -3092,18 +3112,6 @@ PrefabInstance:
     - target: {fileID: 4146421245673923950, guid: 0211e8de959ae7f4597eb262745f730f, type: 3}
       propertyPath: m_Name
       value: Dalaketnon (1)
-      objectReference: {fileID: 0}
-    - target: {fileID: 7049187598505308524, guid: 0211e8de959ae7f4597eb262745f730f, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: -0.214
-      objectReference: {fileID: 0}
-    - target: {fileID: 7049187598505308524, guid: 0211e8de959ae7f4597eb262745f730f, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0.466
-      objectReference: {fileID: 0}
-    - target: {fileID: 7049187598505308524, guid: 0211e8de959ae7f4597eb262745f730f, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0.016
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
